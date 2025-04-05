@@ -5,7 +5,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { geminiService, ChatMessage } from "@/services/geminiService";
 import { toast } from "sonner";
-import { PaperPlaneIcon, TrashIcon, Loader2Icon } from "lucide-react";
+import { Send, Trash, Loader2 } from "lucide-react";
 
 const ChatInterface: React.FC = () => {
   const [messageText, setMessageText] = useState<string>("");
@@ -208,7 +208,7 @@ const ChatInterface: React.FC = () => {
             onClick={handleClearChat}
             title="Clear chat"
           >
-            <TrashIcon className="h-4 w-4" />
+            <Trash className="h-4 w-4" />
           </Button>
           <Textarea
             ref={textareaRef}
@@ -225,7 +225,7 @@ const ChatInterface: React.FC = () => {
             disabled={!messageText.trim() || isLoading}
             title="Send message"
           >
-            {isLoading ? <Loader2Icon className="h-4 w-4 animate-spin" /> : <PaperPlaneIcon className="h-4 w-4" />}
+            {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
           </Button>
         </div>
         <div className="mt-2 text-xs text-muted-foreground text-right">

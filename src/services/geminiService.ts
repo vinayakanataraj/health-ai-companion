@@ -52,7 +52,8 @@ export interface ChatMessage {
 
 // Use an empty string as default - this forces users to input their API key
 const GEMINI_API_KEY = ""; 
-const GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent";
+// Updated API URL to use the correct model name (gemini-1.5-pro instead of gemini-pro)
+const GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent";
 
 // The system prompt to instruct Gemini on how to behave
 const HEALTHCARE_SYSTEM_PROMPT = `
@@ -192,7 +193,7 @@ class GeminiService {
 
       // Prepare the request to Gemini API
       const requestBody = this.prepareChatRequest(userMessage);
-      console.log("Sending request to Gemini API...");
+      console.log("Sending request to Gemini API...", this.apiUrl);
       
       const response = await fetch(`${this.apiUrl}?key=${this.apiKey}`, {
         method: "POST",
@@ -207,6 +208,12 @@ class GeminiService {
         const errorData = await response.json();
         console.error("Gemini API Error:", errorData);
         const errorMessage = errorData.error?.message || `API returned status ${response.status}`;
+        
+        // Check specifically for model availability issues
+        if (errorMessage.includes("not found") || errorMessage.includes("not supported")) {
+          throw new Error(`API Error: ${errorMessage}. Try using a different model like gemini-1.5-flash or gemini-1.0-pro.`);
+        }
+        
         throw new Error(`API Error: ${errorMessage}`);
       }
 
@@ -250,3 +257,4 @@ class GeminiService {
 // Export a singleton instance
 export const geminiService = new GeminiService();
 export default GeminiService;
+

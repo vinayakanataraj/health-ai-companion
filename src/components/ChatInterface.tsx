@@ -5,7 +5,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { geminiService, ChatMessage } from "@/services/geminiService";
 import { toast } from "sonner";
-import { Send, Trash, Loader2, KeyRound, ExternalLink } from "lucide-react";
+import { Send, Trash, Loader2, KeyRound, ExternalLink, Info } from "lucide-react";
 
 const ChatInterface: React.FC = () => {
   const [messageText, setMessageText] = useState<string>("");
@@ -13,6 +13,7 @@ const ChatInterface: React.FC = () => {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [apiKey, setApiKey] = useState<string>("");
   const [apiKeySet, setApiKeySet] = useState<boolean>(false);
+  const [showModelInfo, setShowModelInfo] = useState<boolean>(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -128,7 +129,26 @@ const ChatInterface: React.FC = () => {
               >
                 Get your API key from Google AI Studio <ExternalLink className="h-3 w-3 ml-1" />
               </a>
+              
+              <button 
+                className="ml-2 text-xs text-gray-500 flex items-center"
+                onClick={() => setShowModelInfo(!showModelInfo)}
+              >
+                <Info className="h-3 w-3 mr-1" /> Model info
+              </button>
             </div>
+            
+            {showModelInfo && (
+              <div className="text-xs bg-gray-50 p-2 rounded border border-gray-200 mt-1">
+                <p className="font-medium">Available free models:</p>
+                <ul className="list-disc pl-4 mt-1">
+                  <li>gemini-1.0-pro</li>
+                  <li>gemini-1.5-flash</li>
+                </ul>
+                <p className="mt-1">This app uses gemini-1.5-flash by default (free with API key).</p>
+              </div>
+            )}
+            
             <div className="flex gap-2">
               <input
                 type="password"
@@ -253,3 +273,4 @@ const ChatInterface: React.FC = () => {
 };
 
 export default ChatInterface;
+

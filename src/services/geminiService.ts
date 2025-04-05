@@ -1,3 +1,4 @@
+
 import { toast } from "sonner";
 
 // Define types for our Gemini API service
@@ -49,7 +50,8 @@ export interface ChatMessage {
   timestamp: Date;
 }
 
-const GEMINI_API_KEY = "YOUR_GEMINI_API_KEY"; // Replace this with your actual API key or use environment variables
+// Use an empty string as default - this forces users to input their API key
+const GEMINI_API_KEY = ""; 
 const GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent";
 
 // The system prompt to instruct Gemini on how to behave
@@ -88,6 +90,12 @@ class GeminiService {
   // Set API key (useful if user provides their own key)
   public setApiKey(apiKey: string): void {
     this.apiKey = apiKey;
+    console.log("API key set successfully");
+  }
+
+  // Get API key status (to check if key is set)
+  public hasApiKey(): boolean {
+    return this.apiKey !== undefined && this.apiKey.trim() !== "";
   }
 
   // Prepare the chat history in the format Gemini expects
@@ -166,6 +174,11 @@ class GeminiService {
   // Submit a message to the Gemini API
   public async sendMessage(userMessage: string): Promise<string> {
     try {
+      // Validate API key is present
+      if (!this.hasApiKey()) {
+        throw new Error("No API key provided. Please set your Google Gemini API key first.");
+      }
+
       // Create a unique ID for this message
       const messageId = crypto.randomUUID();
       
@@ -179,6 +192,8 @@ class GeminiService {
 
       // Prepare the request to Gemini API
       const requestBody = this.prepareChatRequest(userMessage);
+      console.log("Sending request to Gemini API...");
+      
       const response = await fetch(`${this.apiUrl}?key=${this.apiKey}`, {
         method: "POST",
         headers: {
@@ -187,13 +202,21 @@ class GeminiService {
         body: JSON.stringify(requestBody)
       });
 
+      // Check for HTTP errors
       if (!response.ok) {
         const errorData = await response.json();
         console.error("Gemini API Error:", errorData);
-        throw new Error(`API Error: ${errorData.error?.message || "Unknown error"}`);
+        const errorMessage = errorData.error?.message || `API returned status ${response.status}`;
+        throw new Error(`API Error: ${errorMessage}`);
       }
 
       const data: GeminiResponse = await response.json();
+      console.log("Received response from Gemini API");
+      
+      // Check if we have valid candidates in the response
+      if (!data.candidates || data.candidates.length === 0) {
+        throw new Error("No response candidates returned from the API");
+      }
       
       // Extract the response text
       const responseText = data.candidates[0]?.content?.parts[0]?.text || "Sorry, I couldn't generate a response.";
@@ -209,8 +232,17 @@ class GeminiService {
       return responseText;
     } catch (error) {
       console.error("Error calling Gemini API:", error);
-      toast.error("Failed to get a response. Please try again later.");
-      return "I'm having trouble connecting to my knowledge base right now. Please try again in a moment.";
+      // Show more detailed error message to the user
+      let errorMessage = "Failed to get a response. ";
+      
+      if (error instanceof Error) {
+        // Include the actual error message for better debugging
+        toast.error(`${errorMessage} ${error.message}`);
+        return `I'm having trouble connecting to my knowledge base right now: ${error.message}. Please check your API key and try again.`;
+      } else {
+        toast.error(errorMessage + "Please try again later.");
+        return "I'm having trouble connecting to my knowledge base right now. Please try again in a moment.";
+      }
     }
   }
 }

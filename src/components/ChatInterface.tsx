@@ -5,7 +5,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { geminiService, ChatMessage } from "@/services/geminiService";
 import { toast } from "sonner";
-import { Send, Trash, Loader2 } from "lucide-react";
+import { Send, Trash, Loader2, KeyRound, ExternalLink } from "lucide-react";
 
 const ChatInterface: React.FC = () => {
   const [messageText, setMessageText] = useState<string>("");
@@ -19,6 +19,9 @@ const ChatInterface: React.FC = () => {
   // Load messages from history when component mounts
   useEffect(() => {
     setMessages(geminiService.getChatHistory());
+    
+    // Check if API key is already set in the gemini service
+    setApiKeySet(geminiService.hasApiKey());
   }, []);
 
   // Auto-scroll to bottom when messages change
@@ -114,25 +117,38 @@ const ChatInterface: React.FC = () => {
       {!apiKeySet && (
         <div className="mb-4 p-4 bg-blue-50 rounded-lg">
           <h3 className="font-medium text-sm mb-2">Enter your Google Gemini API Key</h3>
-          <div className="flex gap-2">
-            <input
-              type="password"
-              value={apiKey}
-              onChange={(e) => setApiKey(e.target.value)}
-              className="flex-1 px-3 py-2 border border-gray-300 rounded-md text-sm"
-              placeholder="Paste your API key here"
-            />
-            <Button onClick={() => {
-              if (apiKey) {
-                geminiService.setApiKey(apiKey);
-                setApiKeySet(true);
-                toast.success("API key set successfully");
-              } else {
-                toast.error("Please enter a valid API key");
-              }
-            }}>
-              Set Key
-            </Button>
+          <div className="flex gap-2 flex-col">
+            <div className="flex items-center gap-2">
+              <KeyRound className="h-4 w-4 text-blue-500" /> 
+              <a 
+                href="https://aistudio.google.com/app/apikey" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="text-xs text-blue-500 hover:underline flex items-center"
+              >
+                Get your API key from Google AI Studio <ExternalLink className="h-3 w-3 ml-1" />
+              </a>
+            </div>
+            <div className="flex gap-2">
+              <input
+                type="password"
+                value={apiKey}
+                onChange={(e) => setApiKey(e.target.value)}
+                className="flex-1 px-3 py-2 border border-gray-300 rounded-md text-sm"
+                placeholder="Paste your API key here"
+              />
+              <Button onClick={() => {
+                if (apiKey) {
+                  geminiService.setApiKey(apiKey);
+                  setApiKeySet(true);
+                  toast.success("API key set successfully");
+                } else {
+                  toast.error("Please enter a valid API key");
+                }
+              }}>
+                Set Key
+              </Button>
+            </div>
           </div>
         </div>
       )}

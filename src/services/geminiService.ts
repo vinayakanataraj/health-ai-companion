@@ -7,7 +7,7 @@ export interface GeminiRequest {
     parts: {
       text: string;
     }[];
-    role: string;
+    role?: string;
   }[];
   generationConfig: {
     temperature: number;
@@ -52,7 +52,7 @@ export interface ChatMessage {
 
 // Use an empty string as default - this forces users to input their API key
 const GEMINI_API_KEY = ""; 
-// Updated API URL to use the correct model name (gemini-1.5-pro instead of gemini-pro)
+// Updated API URL to use the correct model name (gemini-1.5-flash)
 const GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent";
 
 // The system prompt to instruct Gemini on how to behave
@@ -101,13 +101,14 @@ class GeminiService {
 
   // Prepare the chat history in the format Gemini expects
   private prepareChatRequest(userMessage: string): GeminiRequest {
-    // Start with our system prompt
-    const messages = [
-      {
-        parts: [{ text: this.systemPrompt }],
-        role: "system"
-      }
-    ];
+    const messages = [];
+    
+    // Add a first user message containing the system prompt 
+    // This is a workaround since Gemini doesn't support system role
+    messages.push({
+      parts: [{ text: `${this.systemPrompt}\n\nNow, please respond to the user's question:` }],
+      role: "user"
+    });
 
     // Add the conversation history
     this.chatHistory.forEach(msg => {
@@ -257,4 +258,3 @@ class GeminiService {
 // Export a singleton instance
 export const geminiService = new GeminiService();
 export default GeminiService;
-
